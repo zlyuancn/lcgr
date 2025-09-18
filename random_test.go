@@ -11,7 +11,7 @@ func TestRandom(t *testing.T) {
 
 	bf := make(map[uint64]struct{}, testCount) // 用于检查是否有重复
 	for i := uint64(0); i < testCount; i++ {
-		v := r.Uint64()
+		v := r.Next()
 		bf[v] = struct{}{}
 	}
 
@@ -20,7 +20,7 @@ func TestRandom(t *testing.T) {
 	}
 }
 
-func TestRandomSetCount(t *testing.T) {
+func TestRandomStartSn(t *testing.T) {
 	r := NewRandom(testSeed)
 
 	bf := make(map[uint64]struct{}, testCount) // 用于检查是否有重复
@@ -28,14 +28,14 @@ func TestRandomSetCount(t *testing.T) {
 		if i == testCount/2 {
 			break
 		}
-		v := r.Uint64()
+		v := r.Next()
 		bf[v] = struct{}{}
 	}
-	count := r.GetCount()
+	sn := r.GetSn()
 
-	r2 := NewRandomSetCount(testSeed, count)
+	r2 := NewRandomStartSn(testSeed, sn)
 	for i := testCount / 2; i < testCount; i++ {
-		v := r2.Uint64()
+		v := r2.Next()
 		bf[v] = struct{}{}
 	}
 
@@ -44,12 +44,12 @@ func TestRandomSetCount(t *testing.T) {
 	}
 }
 
-func TestRandomN(t *testing.T) {
-	r := NewRandomN(testSeed, testCount)
+func TestRandomLimit(t *testing.T) {
+	r := NewRandomLimit(testSeed, testCount)
 
 	bf := make(map[uint64]struct{}, testCount) // 用于检查是否有重复
 	for i := uint64(0); i < testCount; i++ {
-		v := r.Uint64N()
+		v := r.NextLimit()
 		bf[v] = struct{}{}
 	}
 
@@ -58,22 +58,22 @@ func TestRandomN(t *testing.T) {
 	}
 }
 
-func TestRandomNSetCount(t *testing.T) {
-	r := NewRandomN(testSeed, testCount)
+func TestRandomLimitStartSn(t *testing.T) {
+	r := NewRandomLimit(testSeed, testCount)
 
 	bf := make(map[uint64]struct{}, testCount) // 用于检查是否有重复
 	for i := uint64(0); i < testCount; i++ {
 		if i == testCount/2 {
 			break
 		}
-		v := r.Uint64N()
+		v := r.NextLimit()
 		bf[v] = struct{}{}
 	}
-	count := r.GetCount()
+	count := r.GetSn()
 
-	r2 := NewRandomNSetCount(testSeed, testCount, count)
+	r2 := NewRandomLimitStartSn(testSeed, testCount, count)
 	for i := testCount / 2; i < testCount; i++ {
-		v := r2.Uint64N()
+		v := r2.NextLimit()
 		bf[v] = struct{}{}
 	}
 
@@ -83,21 +83,21 @@ func TestRandomNSetCount(t *testing.T) {
 }
 
 func TestRandomPrint(t *testing.T) {
-	const testCount = 100
+	const testCount = 10
 	r := NewRandom(testSeed)
 
 	for i := uint64(0); i < testCount; i++ {
-		v := r.Uint64()
+		v := r.Next()
 		t.Log("NewRandom=", v)
 	}
 
 }
-func TestRandomNPrint(t *testing.T) {
-	const testCount = 100
-	r := NewRandomN(testSeed, testCount)
+func TestRandomLimitPrint(t *testing.T) {
+	const testCount = 1e8
+	r := NewRandomLimit(testSeed, testCount)
 
-	for i := uint64(0); i < testCount; i++ {
-		v := r.Uint64N()
+	for i := uint64(testCount - 10); i < testCount; i++ {
+		v := r.NextLimit()
 		t.Log("NewRandomN=", v)
 	}
 }
@@ -106,16 +106,16 @@ func BenchmarkRandom(b *testing.B) {
 	r := NewRandom(testSeed)
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			r.Uint64()
+			r.Next()
 		}
 	})
 }
 
-func BenchmarkRandomN(b *testing.B) {
-	r := NewRandomN(testSeed, testCount)
+func BenchmarkRandomLimit(b *testing.B) {
+	r := NewRandomLimit(testSeed, testCount)
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			r.Uint64N()
+			r.NextLimit()
 		}
 	})
 }
@@ -128,7 +128,7 @@ func BenchmarkStdRandom(b *testing.B) {
 	})
 }
 
-func BenchmarkStdRandomN(b *testing.B) {
+func BenchmarkStdRandomLimit(b *testing.B) {
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			rand.Int63n(math.MaxInt)

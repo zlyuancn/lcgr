@@ -58,31 +58,25 @@ func TestConfuseLimitP(t *testing.T) {
 }
 
 func BenchmarkConfuse(b *testing.B) {
-	i := 0
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			Confuse(uint64(i%testCount), testSeed)
-			i++
+			Confuse(uint64(1), testSeed)
 		}
 	})
 }
 
 func BenchmarkConfuseLimit(b *testing.B) {
-	i := 0
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			ConfuseLimit(uint64(i%testCount), testSeed, testCount)
-			i++
+			ConfuseLimit(uint64(1), testSeed, testCount)
 		}
 	})
 }
 
 func BenchmarkConfuseLimitP(b *testing.B) {
-	i := 0
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			ConfuseLimitP(uint64(i%testCount), testSeed, testCount, 10)
-			i++
+			ConfuseLimitP(uint64(1), testSeed, testCount, 10)
 		}
 	})
 }
