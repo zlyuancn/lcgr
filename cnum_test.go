@@ -62,8 +62,8 @@ func TestConfuse1e9(t *testing.T) {
 	bfs := [bfCount]map[uint64]struct{}{}
 	outCh := [bfCount]chan uint64{}
 	for i := 0; i < bfCount; i++ {
-		bfs[i] = make(map[uint64]struct{}, testCount/bfCount) // 平均每个bf有多少数据
-		outCh[i] = make(chan uint64, 100)
+		bfs[i] = make(map[uint64]struct{}, uint64(float64(testCount/bfCount)*1.01)) // 平均每个bf有多少数据, 冗余一点空间避免扩容
+		outCh[i] = make(chan uint64, 1000)
 	}
 
 	// 汇总结果
@@ -133,10 +133,72 @@ func TestConfusePrint(t *testing.T) {
 	}
 }
 
+// 计算限制1~8长度的正确性
+func TestConfuseLimitLenL(t *testing.T) {
+	var testCount = uint64(1)
+	for i := uint64(1); i <= 8; i++ {
+		limitLen := i
+		testCount *= 10
+
+		// 计算重复性
+		bf := make([]bool, testCount)
+		for sn := uint64(0); sn < testCount; sn++ {
+			v := ConfuseLimitLen(sn, testSeed, limitLen) // 计算结果
+			if bf[v] {
+				t.Fatalf("Confusion and conflict between sn=%d", sn)
+			}
+			bf[v] = true
+		}
+		t.Logf("TestConfuseLimitLenLower %d finished", limitLen)
+	}
+}
+
+// 计算限制9~18长度的正确性
+func TestConfuseLimitLenH(t *testing.T) {
+	return // 需要验证时注释掉这一行
+
+	for i := uint64(9); i <= 18; i++ {
+		limitLen := i
+
+		// 计算重复性
+		bf := make(map[uint64]struct{}, testCount) // 用于检查是否有重复
+		for sn := uint64(0); sn < testCount; sn++ {
+			v := ConfuseLimitLen(sn, testSeed, limitLen) // 计算结果
+			bf[v] = struct{}{}
+		}
+
+		if len(bf) != int(testCount) {
+			t.Fatalf("len(bf) != testCount, len(bf)=%d, testCount=%d", len(bf), int(testCount))
+		}
+		t.Logf("TestConfuseLimitLenLower %d finished", limitLen)
+	}
+}
+
+func TestConfuseLimitLenPrint(t *testing.T) {
+	var testCount = uint64(1)
+	for i := uint64(0); i < 9; i++ {
+		limitLen := i + 1
+		testCount *= 10
+
+		for sn := uint64(0); sn < 10; sn++ {
+			v := ConfuseLimitLen(sn, testSeed, limitLen) // 计算结果
+			t.Logf("ConfuseLimitLenPrint len=%d v=%d", limitLen, v)
+		}
+	}
+}
+
 func BenchmarkConfuse(b *testing.B) {
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			Confuse(uint64(1), testSeed)
+		}
+	})
+}
+
+func BenchmarkConfuseLimitLen(b *testing.B) {
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			ConfuseLimitLen(uint64(1), testSeed, 9)
 		}
 	})
 }
