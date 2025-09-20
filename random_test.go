@@ -30,7 +30,7 @@ func TestRandomStartSn(t *testing.T) {
 		v := r.Next()
 		bf[v] = struct{}{}
 	}
-	sn := r.GetSn()
+	sn := r.GetNextSn()
 
 	r2 := NewRandomStartSn(testSeed, sn)
 	for i := testCount / 2; i < testCount; i++ {

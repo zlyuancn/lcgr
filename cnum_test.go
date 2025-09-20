@@ -155,7 +155,7 @@ func TestConfuseLimitLenL(t *testing.T) {
 
 // 计算限制9~18长度的正确性
 func TestConfuseLimitLenH(t *testing.T) {
-	return // 需要验证时注释掉这一行
+	//return // 需要验证时注释掉这一行
 
 	for i := uint64(9); i <= 18; i++ {
 		limitLen := i

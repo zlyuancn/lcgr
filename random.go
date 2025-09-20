@@ -8,8 +8,8 @@ type Random interface {
 	// 返回一个随机数. 调用 2^64-1 次返回的值不会重复. 不会返回0
 	Next() uint64
 
-	// 获取当前sn
-	GetSn() uint64
+	// 获取下一个用于计算的sn
+	GetNextSn() uint64
 }
 
 type randomCli struct {
@@ -31,12 +31,12 @@ func NewRandomStartSn(seed, sn uint64) Random {
 func (r *randomCli) Next() uint64 {
 	v := uint64(0)
 	for v == 0 {
-		i := atomic.AddUint64(&r.sn, 1) - 1
-		v = Confuse(i, r.seed)
+		sn := atomic.AddUint64(&r.sn, 1) - 1
+		v = Confuse(sn, r.seed)
 	}
 	return v
 }
 
-func (r *randomCli) GetSn() uint64 {
+func (r *randomCli) GetNextSn() uint64 {
 	return atomic.LoadUint64(&r.sn)
 }

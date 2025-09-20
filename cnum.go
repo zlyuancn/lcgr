@@ -6,30 +6,30 @@ import (
 
 const primeNumber1e10 uint64 = 9999999967 // 一百亿以内中最大的质数
 
-var blockArgs = map[uint64]struct {
+var blockArgs = []struct {
 	limit              uint64 // 限制值
 	modH, modL         uint64 // 高位和低位具有不同的mod
 	sh1, sh2, sl1, sl2 uint64 // 高位和低位分割后再次分割
 }{
-	18: {1e18, 1e9, 1e9, 1e6, 1e3, 1e5, 1e4},
-	17: {1e17, 1e8, 1e9, 1e6, 1e2, 1e5, 1e4},
-	16: {1e16, 1e8, 1e8, 1e6, 1e2, 1e5, 1e3},
-	15: {1e15, 1e7, 1e8, 1e5, 1e2, 1e5, 1e3},
-	14: {1e14, 1e7, 1e7, 1e5, 1e2, 1e4, 1e3},
-	13: {1e13, 1e6, 1e7, 1e5, 1e1, 1e4, 1e3},
-	12: {1e12, 1e6, 1e6, 1e5, 1e1, 1e4, 1e2},
-	11: {1e11, 1e5, 1e6, 1e4, 1e1, 1e4, 1e2},
-	10: {1e10, 1e5, 1e5, 1e4, 1e1, 1e3, 1e2},
+	{1e1, 1e1, 0, 0, 0, 0, 0},
+	{1e2, 1e2, 0, 1e1, 1e1, 0, 0},
+	{1e3, 1e3, 0, 1e2, 1e1, 0, 0},
+	{1e4, 1e4, 0, 1e3, 1e1, 0, 0},
+	{1e5, 1e5, 0, 1e3, 1e2, 0, 0},
+	{1e6, 1e6, 0, 1e4, 1e2, 0, 0},
+	{1e7, 1e7, 0, 1e4, 1e3, 0, 0},
+	{1e8, 1e8, 0, 1e5, 1e3, 0, 0},
+	{1e9, 1e9, 0, 1e5, 1e4, 0, 0},
 
-	9: {1e9, 1e9, 0, 1e5, 1e4, 0, 0},
-	8: {1e8, 1e8, 0, 1e5, 1e3, 0, 0},
-	7: {1e7, 1e7, 0, 1e4, 1e3, 0, 0},
-	6: {1e6, 1e6, 0, 1e4, 1e2, 0, 0},
-	5: {1e5, 1e5, 0, 1e3, 1e2, 0, 0},
-	4: {1e4, 1e4, 0, 1e3, 1e1, 0, 0},
-	3: {1e3, 1e3, 0, 1e2, 1e1, 0, 0},
-	2: {1e2, 1e2, 0, 1e1, 1e1, 0, 0},
-	1: {1e1, 1e1, 0, 0, 0, 0, 0},
+	{1e10, 1e5, 1e5, 1e4, 1e1, 1e3, 1e2},
+	{1e11, 1e5, 1e6, 1e4, 1e1, 1e4, 1e2},
+	{1e12, 1e6, 1e6, 1e5, 1e1, 1e4, 1e2},
+	{1e13, 1e6, 1e7, 1e5, 1e1, 1e4, 1e3},
+	{1e14, 1e7, 1e7, 1e5, 1e2, 1e4, 1e3},
+	{1e15, 1e7, 1e8, 1e5, 1e2, 1e5, 1e3},
+	{1e16, 1e8, 1e8, 1e6, 1e2, 1e5, 1e3},
+	{1e17, 1e8, 1e9, 1e6, 1e2, 1e5, 1e4},
+	{1e18, 1e9, 1e9, 1e6, 1e3, 1e5, 1e4},
 }
 
 // 质数乘积偏移(值, 偏移量)
@@ -54,7 +54,7 @@ func confuseLimit(sn, seed, limitLen uint64) uint64 {
 		panic("limitLen must be <= 18")
 	}
 
-	args := blockArgs[limitLen]
+	args := blockArgs[limitLen-1]
 
 	if sn >= args.limit {
 		panic(fmt.Sprintf("sn out of %d limitLen", limitLen))
@@ -118,7 +118,7 @@ func ConfuseLimitLen(sn, seed, limitLen uint64) uint64 {
 		return confuseLimit(sn, seed, limitLen)
 	}
 
-	args := blockArgs[limitLen]
+	args := blockArgs[limitLen-1]
 
 	if sn >= args.limit {
 		panic(fmt.Sprintf("sn out of %d limitLen", limitLen))
