@@ -18,8 +18,8 @@ func TestBasic(t *testing.T) {
 	// 计算重复性
 	bf := [testCount]bool{}
 	for i := uint64(0); i < testCount; i++ {
-		sn := i                        // 实际的数据sn
-		v := confuse(sn, offset) % mod // 计算结果
+		sn := i                             // 实际的数据sn
+		v := _mod(confuse(sn, offset), mod) // 计算结果
 		if bf[v] {
 			t.Fatalf("Confusion and conflict between sn=%d", i)
 		}
@@ -53,7 +53,7 @@ func TestConfuseMax(t *testing.T) {
 }
 
 func TestConfuse1e9(t *testing.T) {
-	//return // 需要验证时注释掉这一行
+	return // 需要验证时注释掉这一行
 
 	const testCount = 1e9
 
@@ -93,7 +93,7 @@ func TestConfuse1e9(t *testing.T) {
 				sn := i + iOffset          // 实际的数据sn
 				v := Confuse(sn, testSeed) // 计算结果
 
-				chi := v % uint64(bfCount) // 不同的值放到不同的bf, 这里应该用值来确定ch以保证每个bf之间的值不会重复. 根据协程id来确定ch没有准确性
+				chi := _mod(v, uint64(bfCount)) // 不同的值放到不同的bf, 这里应该用值来确定ch以保证每个bf之间的值不会重复. 根据协程id来确定ch没有准确性
 				ch := outCh[chi]
 				ch <- v
 			}

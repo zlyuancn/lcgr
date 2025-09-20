@@ -8,7 +8,7 @@ const primeNumber1e10 uint64 = 9999999967 // 一百亿以内中最大的质数
 
 var blockArgs = map[uint64]struct {
 	limit              uint64 // 限制值
-	modH, modL         uint64
+	modH, modL         uint64 // 高位和低位具有不同的mod
 	sh1, sh2, sl1, sl2 uint64 // 高位和低位分割后再次分割
 }{
 	18: {1e18, 1e9, 1e9, 1e6, 1e3, 1e5, 1e4},
@@ -60,28 +60,35 @@ func confuseLimit(sn, seed, limitLen uint64) uint64 {
 		panic(fmt.Sprintf("sn out of %d limitLen", limitLen))
 	}
 
-	offset := confuse(seed, 0) % args.modL // 偏移值混淆
+	offset := _mod(confuse(seed, 0), args.modL) // 偏移值混淆
 
 	for i := uint64(0); i < 5; i++ { // ps: 经过实际验证, 重复5次混淆低位值会出现视觉上的随机性
-		snH := sn / args.modL // 高位
-		snL := sn % args.modL // 低位
+		snH := sn / args.modL      // 高位
+		snL := _mod(sn, args.modL) // 低位
 
 		// (snH+i)%mod or (snL+i)%mod 使用 i 对混淆sn值做基础偏移并限制范围在1e9内, 不同的sn必然得到不同的值.
-		vH := confuse((snH+i)%args.modH, offset) % args.modH // 高位混淆. ps: 相同的高位其结果必然相同
-		vL := confuse((snL+i)%args.modL, vH) % args.modL     // 低位混淆, 并使用高位的混淆结果作为偏移量. ps: 高位不变的情况下, vH 值必然相同, 所以可以使用 vH 作为偏移量
+		vH := _mod(confuse(_mod(snH+i, args.modH), offset), args.modH) // 高位混淆. ps: 相同的高位其结果必然相同
+		vL := _mod(confuse(_mod(snL+i, args.modL), vH), args.modL)     // 低位混淆, 并使用高位的混淆结果作为偏移量. ps: 高位不变的情况下, vH 值必然相同, 所以可以使用 vH 作为偏移量
 		// 到这里已经完成了一次混淆. 不同的 sn 必然映射为不同的 vH 和 vL, sn结果为 vL + vH*mod, 不同的sn必然得到不同的值.
 
 		// 数值高低位交换, 由于高低位长度不同, 经过多次循环和混淆后会将数值变化曲线蔓延到每一位值
 		h := vH / args.sh1
-		vH = vH%args.sh1*args.sh2 + h
+		vH = _mod(vH, args.sh1)*args.sh2 + h
 
 		l := vL / args.sl1
-		vL = vL%args.sl1*args.sl2 + l
+		vL = _mod(vL, args.sl1)*args.sl2 + l
 
 		// 这里对其结果切换高低位, 在for的下一个循环中再次进行混淆
 		sn = vL*args.modH + vH
 	}
 	return sn
+}
+
+func _mod(a, b uint64) uint64 {
+	if a < b {
+		return a
+	}
+	return a % b
 }
 
 /*
@@ -119,19 +126,19 @@ func ConfuseLimitLen(sn, seed, limitLen uint64) uint64 {
 
 	if limitLen == 1 {
 		for i := 0; i < 5; i++ {
-			sn = confuse(sn, seed) % args.modH
+			sn = _mod(confuse(sn, seed), args.modH)
 		}
 		return sn
 	}
 
-	offset := confuse(seed, 0) % args.modH // 偏移值混淆
+	offset := _mod(confuse(seed, 0), args.modH) // 偏移值混淆
 
 	for i := uint64(0); i < 5; i++ {
-		v := confuse((sn+i)%args.modH, offset) % args.modH
+		v := _mod(confuse(_mod((sn+i), args.modH), offset), args.modH)
 
 		// 数值高低位交换
 		h := v / args.sh1
-		sn = v%args.sh1*args.sh2 + h
+		sn = _mod(v, args.sh1)*args.sh2 + h
 	}
 	return sn
 }
