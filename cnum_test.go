@@ -6,27 +6,63 @@ import (
 	"testing"
 )
 
-const testCount = 1e7
-const testSeed = 0xabcdef12 // 一个seed
+const testCount uint64 = 1e8
+const testSeed uint64 = 0xabcdef12 // 一个seed
 
 // 计算基础理论是否正确
 func TestBasic(t *testing.T) {
-	return // 需要验证时注释掉这一行
-
-	const testCount = 1e9
-	const mod uint64 = 1e9
-
-	const testSeed = 0xabcdef12 // 一个seed
-
+	const testCount uint64 = 1e9
+	const mod = testCount
 	const offset = testSeed % mod
 
 	// 计算重复性
-	const bfCount int = 10000            // bf数量
-	const bfVCount = testCount / bfCount // 每个bf存放多少数据
+	bf := [testCount]bool{}
+	for i := uint64(0); i < testCount; i++ {
+		sn := i                        // 实际的数据sn
+		v := confuse(sn, offset) % mod // 计算结果
+		if bf[v] {
+			t.Fatalf("Confusion and conflict between sn=%d", i)
+		}
+		bf[v] = true
+	}
+}
+
+func TestConfuse(t *testing.T) {
+	bf := make(map[uint64]struct{}, testCount) // 用于检查是否有重复
+	for i := uint64(0); i < testCount; i++ {
+		v := Confuse(i, testSeed)
+		bf[v] = struct{}{}
+	}
+
+	if len(bf) != int(testCount) {
+		t.Fatalf("len(bf) != testCount, len(bf)=%d, testCount=%d", len(bf), int(testCount))
+	}
+}
+
+func TestConfuseMax(t *testing.T) {
+	bf := make(map[uint64]struct{}, testCount) // 用于检查是否有重复
+	for i := uint64(0); i < testCount; i++ {
+		v := Confuse(i+(1e18-testCount), testSeed)
+
+		bf[v] = struct{}{}
+	}
+
+	if len(bf) != int(testCount) {
+		t.Fatalf("len(bf) != testCount, len(bf)=%d, testCount=%d", len(bf), int(testCount))
+	}
+}
+
+func TestConfuse1e9(t *testing.T) {
+	//return // 需要验证时注释掉这一行
+
+	const testCount = 1e9
+
+	// 计算重复性
+	const bfCount int = 1e5 // bf数量
 	bfs := [bfCount]map[uint64]struct{}{}
 	outCh := [bfCount]chan uint64{}
 	for i := 0; i < bfCount; i++ {
-		bfs[i] = make(map[uint64]struct{}, testCount/bfCount)
+		bfs[i] = make(map[uint64]struct{}, testCount/bfCount) // 平均每个bf有多少数据
 		outCh[i] = make(chan uint64, 100)
 	}
 
@@ -46,18 +82,18 @@ func TestBasic(t *testing.T) {
 
 	// 将计算分为多个协程
 	var p int32 // 进度
-	const threadCount = bfCount
+	const threadCount = 10000
 	wgTh := new(sync.WaitGroup)
-	wgTh.Add(bfCount)
+	wgTh.Add(threadCount)
 	for ti := 0; ti < threadCount; ti++ {
-		block := bfVCount // 每个线程计算多少数据
+		block := testCount / uint64(threadCount) // 每个线程计算多少数据
 		go func(ti int) {
-			iOffset := ti * block // 每个线程的数据偏移
-			for i := 0; i < block; i++ {
-				sn := uint64(i + iOffset)      // 实际的数据sn
-				v := confuse(sn, offset) % mod // 计算结果
+			iOffset := uint64(ti) * block // 每个线程的数据偏移
+			for i := uint64(0); i < block; i++ {
+				sn := i + iOffset          // 实际的数据sn
+				v := Confuse(sn, testSeed) // 计算结果
 
-				chi := int(v) / bfVCount // 不同的值放到不同的bf, 这里应该值来确定ch. 根据协程id来确定ch没有准确性
+				chi := v % uint64(bfCount) // 不同的值放到不同的bf, 这里应该用值来确定ch以保证每个bf之间的值不会重复. 根据协程id来确定ch没有准确性
 				ch := outCh[chi]
 				ch <- v
 			}
@@ -80,35 +116,12 @@ func TestBasic(t *testing.T) {
 	wgOut.Wait()
 
 	// 计算最终数据是否一致
+	c := 0
 	for _, bf := range bfs {
-		if len(bf) != bfVCount {
-			t.Fatalf("len(bf) != bfVCount, len(bf)=%d, bfVCount=%d", len(bf), int(bfVCount))
-		}
+		c += len(bf)
 	}
-}
-
-func TestConfuse(t *testing.T) {
-	bf := make(map[uint64]struct{}, testCount) // 用于检查是否有重复
-	for i := uint64(0); i < testCount; i++ {
-		v := Confuse(i, testSeed)
-		bf[v] = struct{}{}
-	}
-
-	if len(bf) != testCount {
-		t.Fatalf("len(bf) != testCount, len(bf)=%d, testCount=%d", len(bf), int(testCount))
-	}
-}
-
-func TestConfuseMax(t *testing.T) {
-	bf := make(map[uint64]struct{}, testCount) // 用于检查是否有重复
-	for i := uint64(0); i < testCount; i++ {
-		v := Confuse(i+(1e18-testCount), testSeed)
-
-		bf[v] = struct{}{}
-	}
-
-	if len(bf) != testCount {
-		t.Fatalf("len(bf) != testCount, len(bf)=%d, testCount=%d", len(bf), int(testCount))
+	if c != testCount {
+		t.Fatalf("len(bf) != bfVCount, len(bf)=%d, testCount=%d", c, int(testCount))
 	}
 }
 

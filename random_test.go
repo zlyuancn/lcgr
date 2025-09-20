@@ -14,7 +14,7 @@ func TestRandom(t *testing.T) {
 		bf[v] = struct{}{}
 	}
 
-	if len(bf) != testCount {
+	if len(bf) != int(testCount) {
 		t.Fatalf("len(bf) != testCount, len(bf)=%d, testCount=%d", len(bf), int(testCount))
 	}
 }
@@ -38,7 +38,7 @@ func TestRandomStartSn(t *testing.T) {
 		bf[v] = struct{}{}
 	}
 
-	if len(bf) != testCount {
+	if len(bf) != int(testCount) {
 		t.Fatalf("len(bf) != testCount, len(bf)=%d, testCount=%d", len(bf), int(testCount))
 	}
 }
