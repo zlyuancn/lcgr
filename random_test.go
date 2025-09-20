@@ -1,7 +1,6 @@
 package cnum
 
 import (
-	"math"
 	"math/rand"
 	"testing"
 )
@@ -44,44 +43,6 @@ func TestRandomStartSn(t *testing.T) {
 	}
 }
 
-func TestRandomLimit(t *testing.T) {
-	r := NewRandomLimit(testSeed, testCount)
-
-	bf := make(map[uint64]struct{}, testCount) // 用于检查是否有重复
-	for i := uint64(0); i < testCount; i++ {
-		v := r.NextLimit()
-		bf[v] = struct{}{}
-	}
-
-	if len(bf) != testCount {
-		t.Fatalf("len(bf) != testCount, len(bf)=%d, testCount=%d", len(bf), int(testCount))
-	}
-}
-
-func TestRandomLimitStartSn(t *testing.T) {
-	r := NewRandomLimit(testSeed, testCount)
-
-	bf := make(map[uint64]struct{}, testCount) // 用于检查是否有重复
-	for i := uint64(0); i < testCount; i++ {
-		if i == testCount/2 {
-			break
-		}
-		v := r.NextLimit()
-		bf[v] = struct{}{}
-	}
-	count := r.GetSn()
-
-	r2 := NewRandomLimitStartSn(testSeed, testCount, count)
-	for i := testCount / 2; i < testCount; i++ {
-		v := r2.NextLimit()
-		bf[v] = struct{}{}
-	}
-
-	if len(bf) != testCount {
-		t.Fatalf("len(bf) != testCount, len(bf)=%d, testCount=%d", len(bf), int(testCount))
-	}
-}
-
 func TestRandomPrint(t *testing.T) {
 	const testCount = 10
 	r := NewRandom(testSeed)
@@ -91,15 +52,6 @@ func TestRandomPrint(t *testing.T) {
 		t.Log("NewRandom=", v)
 	}
 
-}
-func TestRandomLimitPrint(t *testing.T) {
-	const testCount = 1e8
-	r := NewRandomLimit(testSeed, testCount)
-
-	for i := uint64(testCount - 10); i < testCount; i++ {
-		v := r.NextLimit()
-		t.Log("NewRandomN=", v)
-	}
 }
 
 func BenchmarkRandom(b *testing.B) {
@@ -111,27 +63,10 @@ func BenchmarkRandom(b *testing.B) {
 	})
 }
 
-func BenchmarkRandomLimit(b *testing.B) {
-	r := NewRandomLimit(testSeed, testCount)
-	b.RunParallel(func(pb *testing.PB) {
-		for pb.Next() {
-			r.NextLimit()
-		}
-	})
-}
-
 func BenchmarkStdRandom(b *testing.B) {
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			rand.Int63()
-		}
-	})
-}
-
-func BenchmarkStdRandomLimit(b *testing.B) {
-	b.RunParallel(func(pb *testing.PB) {
-		for pb.Next() {
-			rand.Int63n(math.MaxInt)
 		}
 	})
 }
