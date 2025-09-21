@@ -96,6 +96,8 @@ func _mod(a, b uint64) uint64 {
 
 	sn 序号, 必须小于 1e18
 	seed 随机种子
+
+返回值区间在 [0, 1e18), 包含 0 不包含 1e18
 */
 func Confuse(sn, seed uint64) uint64 {
 	return confuseLimit(sn, seed, 18)
