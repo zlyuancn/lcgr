@@ -1,4 +1,4 @@
-package cnum
+package lcgr
 
 import (
 	"math/rand"

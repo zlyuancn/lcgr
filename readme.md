@@ -12,7 +12,7 @@
 ```go
 const seed = 0xabcdef12 // seed 是一个随机数种子, 可以是任意值, 业务自行保管
 sn := IncrBy() // IncrBy 是一个序号生成器, 用于数值自增. 可以考虑使用 redis 实现以支持分布式节点生成
-id := cnum.Confuse(sn, seed) // 使用 seed 混淆序号 
+id := lcgr.Confuse(sn, seed) // 使用 seed 混淆序号 
 ```
 
 ## 随机数生成, 生成 1e18 次结果不重复
@@ -21,7 +21,7 @@ id := cnum.Confuse(sn, seed) // 使用 seed 混淆序号
 
 ```go
 const seed = 0xabcdef12 // seed 是一个随机数种子, 可以是任意值, 业务自行保管
-r := cnum.NewRandom(seed) // 创建一个随机数生成器
+r := lcgr.NewRandom(seed) // 创建一个随机数生成器
 r.Next() // 生成随机数
 ```
 
