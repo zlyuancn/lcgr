@@ -7,9 +7,9 @@ import (
 const primeNumber1e10 uint64 = 9999999967 // 一百亿以内中最大的质数
 
 var blockArgs = []struct {
-	limit              uint64 // 限制值
-	modH, modL         uint64 // 高位和低位具有不同的mod
-	sh1, sh2, sl1, sl2 uint64 // 高位和低位分割后再次分割
+	limit              uint64 // 限制值, 将最终处理结果限制在一定范围
+	modH, modL         uint64 // 高位和低位具有不同的模数
+	sh1, sh2, sl1, sl2 uint64 // 高位和低位分割后再次分割交换的位数
 }{
 	{1e1, 1e1, 0, 0, 0, 0, 0},
 	{1e2, 1e2, 0, 1e1, 1e1, 0, 0},
