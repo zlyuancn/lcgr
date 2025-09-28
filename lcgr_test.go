@@ -27,6 +27,27 @@ func TestBasic(t *testing.T) {
 	}
 }
 
+// 计算交换高低位理论是否正确
+func TestExchange(t *testing.T) {
+	const testCount uint64 = 1e9
+
+	// 计算重复性
+	bf := [testCount]bool{}
+	for i := uint64(0); i < testCount; i++ {
+		sn := i // 实际的数据sn
+
+		// 开始交换
+		h := sn / 1e5      // 高位
+		l := _mod(sn, 1e5) // 低位
+		v := l*1e4 + h     // 交换
+
+		if bf[v] {
+			t.Fatalf("Confusion and conflict between sn=%d", i)
+		}
+		bf[v] = true
+	}
+}
+
 func TestConfuse(t *testing.T) {
 	bf := make(map[uint64]struct{}, testCount) // 用于检查是否有重复
 	for i := uint64(0); i < testCount; i++ {
@@ -155,7 +176,7 @@ func TestConfuseLimitLenL(t *testing.T) {
 
 // 计算限制9~18长度的正确性
 func TestConfuseLimitLenH(t *testing.T) {
-	//return // 需要验证时注释掉这一行
+	// return // 需要验证时注释掉这一行
 
 	for i := uint64(9); i <= 18; i++ {
 		limitLen := i
